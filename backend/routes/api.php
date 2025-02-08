@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -60,7 +61,6 @@ Route::middleware('auth:api')->group(
                 );
             }
         );
-
         Route::prefix('uploads')->name('uploads.')->group(
             function () {
                 Route::controller(UploadController::class)->group(
@@ -75,6 +75,16 @@ Route::middleware('auth:api')->group(
                 );
             }
         );
+        Route::prefix('events')->name('events.')->group(
+            function () {
+                Route::controller(EventController::class)->group(
+                    function () {
+                        Route::get('/', 'readAll');
+                    }
+                );
+            }
+        );
+
     }
 );
 

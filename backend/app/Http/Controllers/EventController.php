@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -29,7 +28,9 @@ class EventController extends CrudController
     {
         try {
             $params = $this->getDatatableParams($request);
-            $query = $this->getReadAllQuery()->dataTable($params);
+
+            // Eager-load both participants and the creator
+            $query = $this->getReadAllQuery()->with(['participants', 'creator'])->dataTable($params);
 
             if ($request->input('per_page', 50) === 'all') {
                 $items = $query->get();
@@ -40,17 +41,30 @@ class EventController extends CrudController
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'items' => $items,
+                    'items' => $items->map(function ($event) {
+                        return [
+                            'title' => $event->title,
+                            'date' => $event->date,
+                            'location' => $event->location,
+                            'maxParticipants' => $event->maxParticipants,
+                            'participants' => $event->allParticipants()->map(function ($user) {
+                                return [
+                                    'id' => $user->id,
+                                    'name' => $user->name,
+                                    'email' => $user->email,
+                                ];
+                            }),
+                        ];
+                    }),
                     'meta' => [
-                        'current_page' => $items->currentPage(),
-                        'last_page' => $items->lastPage(),
-                        'total_items' => $items->total(),
+                        'currentPage' => $items->currentPage(),
+                        'lastPage' => $items->lastPage(),
+                        'totalItems' => $items->total(),
                     ],
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error('Error caught in function EventController.readAll: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
+            Log::error('Error in EventController.readAll: ' . $e->getMessage());
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
         }
     }

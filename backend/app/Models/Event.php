@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class Event extends BaseModel
 {
-
     protected $visible =
     [
         'title',
@@ -36,6 +35,11 @@ class Event extends BaseModel
                 $user->givePermission('events.' . $event->id . '.update');
                 $user->givePermission('events.' . $event->id . '.delete');
             }
+
+            $authUser = auth()->user();
+            if ($authUser) {
+                $event->participants()->attach($authUser->id);
+            }
         });
 
         static::deleted(function ($event) {
@@ -43,5 +47,19 @@ class Event extends BaseModel
             DB::table('users_permissions')->whereIn('permission_id', $permissions->pluck('id'))->delete();
             Permission::destroy($permissions->pluck('id'));
         });
+    }
+    public function participants()
+    {
+        return $this->belongsToMany(User::class, 'event_participants');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function allParticipants()
+    {
+        return $this->participants->push($this->creator)->unique('id');
     }
 }

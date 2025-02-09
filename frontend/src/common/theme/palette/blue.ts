@@ -18,23 +18,22 @@ const GREY = {
   A400: '#657487',
   A700: '#455463',
 };
-
-const PRIMARY = {
-  lighter: '#D1E9FC',
-  light: '#76B0F1',
-  main: '#2065D1',
-  dark: '#103996',
-  darker: '#061B64',
-  contrastText: '#fff',
+const SECONDARY = {
+  lighter: '#B2F7FF', // Lighter version of 60efff
+  light: '#8FF3FF', // Light version of 60efff
+  main: '#60EFFF', // Original color
+  dark: '#00C7E6', // Darker version of 60efff
+  darker: '#009BB3', // Much darker version of 60efff
+  contrastText: '#000', // Black text since the background is light
 };
 
-const SECONDARY = {
-  lighter: '#D6E4FF',
-  light: '#84A9FF',
-  main: '#3366FF',
-  dark: '#1939B7',
-  darker: '#091A7A',
-  contrastText: '#fff',
+const PRIMARY = {
+  lighter: '#2D3561', // Lighter version of 141B41
+  light: '#1F2751', // Light version of 141B41
+  main: '#141B41', // Original color
+  dark: '#0B1029', // Darker version of 141B41
+  darker: '#050813', // Much darker version of 141B41
+  contrastText: '#fff', // White text since the background is dark
 };
 
 const INFO = {

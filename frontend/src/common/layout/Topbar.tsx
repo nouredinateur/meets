@@ -24,6 +24,7 @@ import Logo from '@common/assets/svgs/Logo';
 import { ArrowForwardIos, Logout } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { setUserLanguage } from '@common/components/lib/utils/language';
 
 interface TopbarItem {
@@ -143,12 +144,20 @@ const Topbar = () => {
       <Container>
         <Toolbar sx={{ px: { xs: 0, sm: 0 } }}>
           <Stack flexDirection="row" alignItems="center" flexGrow={1}>
-            <Logo
-              id="topbar-logo"
+            <Box
+              component="div"
               onClick={() => router.push(Routes.Common.Home)}
-              sx={{ cursor: 'pointer' }}
-            />
+              sx={{
+                width: 80,
+                height: 80,
+                display: 'inline-flex',
+                cursor: 'pointer',
+              }}
+            >
+              <Image src="/meets.png" alt="Logo" width={80} height={80} />
+            </Box>
           </Stack>
+
           <List sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
             <>
               {navItems.map((item, index) => {

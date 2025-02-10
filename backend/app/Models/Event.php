@@ -62,4 +62,20 @@ class Event extends BaseModel
     {
         return $this->participants->push($this->creator)->unique('id');
     }
+    public function rules($id = null)
+    {
+        $id = $id ?? request()->route('id');
+        $rules = [
+            'title' => [
+                'required',
+                'string',
+            ],
+            'date' => 'required|string|',
+            'location' => 'required|string',
+            'max_participants' => 'required',
+            'user_id' => 'required',
+        ];
+
+        return $rules;
+    }
 }

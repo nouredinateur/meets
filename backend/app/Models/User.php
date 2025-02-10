@@ -32,6 +32,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     protected $fillable = [
         'email',
         'password',
+        'avatar',
     ];
 
     /**
@@ -49,6 +50,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     protected $appends = [
         'rolesNames',
         'permissionsNames',
+        'avatarUrl',
     ];
 
     /**
@@ -221,5 +223,14 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         }
 
         return $rules;
+    }
+    public function events()
+    {
+        return $this->belongsToMany(Event::class, 'event_user');
+    }
+
+    public function getAvatarUrlAttribute()
+    {
+        return $this->avatar ? asset('storage/' . $this->avatar) : asset('images/default-avatar.png');
     }
 }

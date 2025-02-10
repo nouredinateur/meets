@@ -28,8 +28,6 @@ class EventController extends CrudController
     {
         try {
             $params = $this->getDatatableParams($request);
-
-            // Eager-load both participants and the creator
             $query = $this->getReadAllQuery()->with(['participants', 'creator'])->dataTable($params);
 
             if ($request->input('per_page', 50) === 'all') {
@@ -52,6 +50,7 @@ class EventController extends CrudController
                                     'id' => $user->id,
                                     'name' => $user->name,
                                     'email' => $user->email,
+                                    'avatar' => $user->avatarUrl, // Include avatar URL
                                 ];
                             }),
                         ];
@@ -68,7 +67,6 @@ class EventController extends CrudController
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
         }
     }
-
     public function createOne(Request $request)
     {
         try {

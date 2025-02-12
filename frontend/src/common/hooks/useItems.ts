@@ -54,6 +54,7 @@ export interface UseItemsHook<Item, CreateOneInput, UpdateOneInput> {
     options?: FetchApiOptions
   ) => Promise<ItemResponse<Item>>;
   deleteOne: (id: Id, options?: FetchApiOptions) => Promise<ItemResponse<Item>>;
+  register: (id: Id, options?: FetchApiOptions) => Promise<ApiResponse<null>>;
   mutate: () => void;
 }
 
@@ -229,6 +230,19 @@ const useItems = <Item, CreateOneInput, UpdateOneInput>(
     return response;
   };
 
+  const register = async (id: Id, options?: FetchApiOptions) => {
+    const response = await fetchApi<null>(apiRoutes.Register.replace('{id}', id.toString()), {
+      method: 'POST',
+      ...options,
+    });
+
+    if (response.success) {
+      mutateAndRefetch();
+    }
+
+    return response;
+  };
+
   return {
     items,
     paginationMeta,
@@ -238,6 +252,7 @@ const useItems = <Item, CreateOneInput, UpdateOneInput>(
     updateOne,
     patchOne,
     deleteOne,
+    register,
     mutate: mutateAndRefetch,
   };
 };

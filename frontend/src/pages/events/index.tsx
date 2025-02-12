@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NextPage } from 'next';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
+import { FilterParam, SortParam, UseItems, UseItemsOptions } from '@common/hooks/useItems';
 import {
   Box,
   Card,
@@ -18,6 +19,7 @@ import {
   DialogActions,
   TextField,
   Stack,
+  Pagination,
 } from '@mui/material';
 import {
   CalendarMonth as CalendarMonthIcon,
@@ -27,13 +29,13 @@ import {
 import withAuth, { AUTH_MODE } from '@modules/auth/hocs/withAuth';
 import Routes from '@common/defs/routes';
 import ApiRoutes from '@common/defs/api-routes';
-import useItems, { UseItemsResult } from '@modules/events/hooks/api/useEvents'; // Ensure this import is correct
+import useEvents from '@modules/events/hooks/api/useEvents'; // Ensure this import is correct
 import useAuth from '@modules/auth/hooks/api/useAuth'; // Import the useAuth hook
 import { useForm } from 'react-hook-form';
 
 // Type definitions
 interface Event {
-  id: string;
+  id: number;
   title: string;
   date: string;
   location: string;
@@ -76,7 +78,7 @@ const formatTime = (dateString: string) => {
   });
 };
 
-const AddEventForm = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) => {
+const AddEventForm = ({ onClose }: { onClose: () => void }) => {
   const {
     register,
     handleSubmit,
@@ -96,15 +98,13 @@ const AddEventForm = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
   const [error, setError] = useState<string | null>(null);
 
   const { user } = useAuth();
-  const useEvents = useItems<Event, CreateEventInput>(ApiRoutes.Events);
-  const { createOne } = useEvents;
+  const { createOne } = useEvents();
 
   const onSubmit = async (data: CreateEventInput) => {
     setLoading(true);
     setError(null);
     try {
       await createOne({ ...data, userId: user?.id });
-      onSuccess();
       onClose();
       reset();
     } catch (error) {
@@ -169,7 +169,6 @@ const AddEventForm = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
   );
 };
 
-// Event Detail Dialog Component
 const EventDetailDialog = ({
   event,
   open,
@@ -179,6 +178,22 @@ const EventDetailDialog = ({
   open: boolean;
   onClose: () => void;
 }) => {
+  const { register } = useEvents();
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    setLoading(true);
+    const response = await register(event.id);
+    setLoading(false);
+
+    if (response.success) {
+      alert('Successfully registered for the event!');
+      onClose();
+    } else {
+      alert(`Registration failed: ${response.message || 'Unknown error'}`);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{event.title}</DialogTitle>
@@ -202,8 +217,8 @@ const EventDetailDialog = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
-        <Button variant="contained" color="primary">
-          Register
+        <Button variant="contained" color="primary" onClick={handleRegister} disabled={loading}>
+          {loading ? 'Registering...' : 'Register'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -215,31 +230,30 @@ const EventsPage: NextPage = () => {
   const { t } = useTranslation(['user']);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [sortModel, setSortModel] = useState([{ field: 'createdAt', sort: 'desc' }]);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
 
-  const useEvents = useItems<Event, CreateEventInput>(ApiRoutes.Events);
-  const { items, meta, loading, error, refresh } = useEvents;
+  useEffect(() => {
+    let filterParam: FilterParam | undefined;
+    let sortParam: SortParam | undefined;
 
-  if (loading) {
-    return <Box>Loading...</Box>;
-  }
+    readAll(page, pageSize, sortParam, filterParam ? [filterParam] : []);
+  }, [page, pageSize]);
+  const { items, readAll, register, paginationMeta } = useEvents();
 
-  if (error) {
-    return <Box>Error loading events</Box>;
-  }
-
+  console.log(items);
   return (
     <Box sx={{ p: 3 }}>
       <Button variant="outlined" onClick={() => setShowAddForm(true)} sx={{ mb: 2 }}>
         Add New Event
       </Button>
-
       <Dialog open={showAddForm} onClose={() => setShowAddForm(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Create New Event</DialogTitle>
         <DialogContent>
-          <AddEventForm onClose={() => setShowAddForm(false)} onSuccess={refresh} />
+          <AddEventForm onClose={() => setShowAddForm(false)} />
         </DialogContent>
       </Dialog>
-
       {selectedEvent && (
         <EventDetailDialog
           event={selectedEvent}
@@ -247,7 +261,6 @@ const EventsPage: NextPage = () => {
           onClose={() => setSelectedEvent(null)}
         />
       )}
-
       <Box
         sx={{
           display: 'grid',
@@ -296,12 +309,18 @@ const EventsPage: NextPage = () => {
           </Card>
         ))}
       </Box>
-
-      {meta && meta.lastPage > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-          {/* Add pagination controls here */}
+      {paginationMeta && paginationMeta.lastPage > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
+          <Pagination
+            count={paginationMeta.lastPage} // Total pages
+            page={page} // Controlled page state
+            onChange={(_, newPage) => setPage(newPage)} // Correctly updates `page`
+            color="primary"
+            variant="outlined"
+            shape="rounded"
+          />
         </Box>
-      )}
+      )}{' '}
     </Box>
   );
 };

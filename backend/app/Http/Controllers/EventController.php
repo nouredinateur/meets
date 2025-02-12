@@ -6,6 +6,8 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\CrudController;
+use App\Mail\EventRegistrationNotification;
+use Illuminate\Support\Facades\Mail;
 
 class EventController extends CrudController
 {
@@ -171,6 +173,8 @@ class EventController extends CrudController
             }
 
             $event->participants()->attach($user->id);
+            
+            Mail::to($event->creator->email)->send(new EventRegistrationNotification($event, $user));
 
             return response()->json([
                 'success' => true,

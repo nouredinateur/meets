@@ -46,6 +46,7 @@ class EventController extends CrudController
                             'date' => $event->date,
                             'location' => $event->location,
                             'maxParticipants' => $event->max_participants,
+                            'remainingSpots' => max(0, $event->max_participants - $event->participants()->count()),
                             'participants' => $event->allParticipants()->map(function ($user) {
                                 return [
                                     'id' => $user->id,
@@ -90,6 +91,7 @@ class EventController extends CrudController
                             'date' => $event->date,
                             'location' => $event->location,
                             'maxParticipants' => $event->max_participants,
+                            'remainingSpots' => max(0, $event->max_participants - $event->participants()->count()),
                             'participants' => $event->allParticipants()->map(function ($user) {
                                 return [
                                     'id' => $user->id,
@@ -162,13 +164,19 @@ class EventController extends CrudController
                 return response()->json(['success' => false, 'message' => 'User already registered']);
             }
 
-            if ($event->participants()->count() >= $event->max_participants) {
+            $remainingSpots = $event->max_participants - $event->participants()->count();
+
+            if ($remainingSpots <= 0) {
                 return response()->json(['success' => false, 'message' => 'Event is full']);
             }
 
             $event->participants()->attach($user->id);
 
-            return response()->json(['success' => true, 'message' => 'User registered successfully']);
+            return response()->json([
+                'success' => true,
+                'message' => 'User registered successfully',
+                'remainingSpots' => max(0, $remainingSpots - 1),
+            ]);
         } catch (\Exception $e) {
             Log::error('Error in EventController.register: ' . $e->getMessage());
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);

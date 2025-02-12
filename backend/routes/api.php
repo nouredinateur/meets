@@ -83,6 +83,7 @@ Route::middleware('auth:api')->group(
                 Route::get('/{event}', 'readOne'); // Get a specific event
                 Route::put('/{event}', 'updateOne'); // Update an event
                 Route::delete('/{event}', 'deleteOne'); // Delete an event
+                Route::post('/{event}/register', 'register');
             });
         });
     }

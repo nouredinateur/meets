@@ -41,10 +41,11 @@ class EventController extends CrudController
                 'data' => [
                     'items' => $items->map(function ($event) {
                         return [
+                            'id' => $event->id,
                             'title' => $event->title,
                             'date' => $event->date,
                             'location' => $event->location,
-                            'maxParticipants' => $event->maxParticipants,
+                            'maxParticipants' => $event->max_participants,
                             'participants' => $event->allParticipants()->map(function ($user) {
                                 return [
                                     'id' => $user->id,
@@ -103,6 +104,29 @@ class EventController extends CrudController
             Log::error('Error caught in function EventController.updateOne : ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
+            return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
+        }
+    }
+
+    public function register(Request $request, $eventId)
+    {
+        try {
+            $user = auth()->user();
+            $event = Event::findOrFail($eventId);
+
+            if ($event->participants()->where('user_id', $user->id)->exists()) {
+                return response()->json(['success' => false, 'message' => 'User already registered']);
+            }
+
+            if ($event->participants()->count() >= $event->max_participants) {
+                return response()->json(['success' => false, 'message' => 'Event is full']);
+            }
+
+            $event->participants()->attach($user->id);
+
+            return response()->json(['success' => true, 'message' => 'User registered successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error in EventController.register: ' . $e->getMessage());
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
         }
     }

@@ -8,15 +8,14 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
 class EventRegistrationNotification extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
-
     public $event;
     public $user;
 
-    public function __construct(Event $event, User $user)
+    public function __construct($event, $user)
     {
         $this->event = $event;
         $this->user = $user;
@@ -24,11 +23,16 @@ class EventRegistrationNotification extends Mailable implements ShouldQueue
 
     public function build()
     {
-        return $this->subject('New Event Registration')
-            ->view('vendor/mail/html/event-registration')
-            ->with([
+        Log::info("Preparing email for event registration", [
+            'eventTitle' => $this->event->title,
+            'userEmail' => $this->user->email,
+            'eventDate' => $this->event->date,
+        ]);
+
+        return $this->subject("New Registration for {$this->event->title}")
+            ->view('vendor/mail/html/event-registration')->with([
                 'eventTitle' => $this->event->title,
-                'userName' => $this->user->name,
+                'userEmail' => $this->user->email,
                 'eventDate' => $this->event->date,
             ]);
     }

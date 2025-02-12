@@ -163,26 +163,33 @@ class EventController extends CrudController
             $event = Event::findOrFail($eventId);
 
             if ($event->participants()->where('user_id', $user->id)->exists()) {
+                Log::warning("User already registered", ['user_id' => $user->id, 'event_id' => $event->id]);
                 return response()->json(['success' => false, 'message' => 'User already registered']);
             }
 
-            $remainingSpots = $event->max_participants - $event->participants()->count();
-
-            if ($remainingSpots <= 0) {
+            if ($event->participants()->count() >= $event->max_participants) {
+                Log::warning("Event is full", ['event_id' => $event->id]);
                 return response()->json(['success' => false, 'message' => 'Event is full']);
             }
 
             $event->participants()->attach($user->id);
+            Log::info("User registered for event", ['user_id' => $user->id, 'event_id' => $event->id]);
 
+            // Queue the email
             Mail::to($event->creator->email)->queue(new EventRegistrationNotification($event, $user));
-
-            return response()->json([
-                'success' => true,
-                'message' => 'User registered successfully',
-                'remainingSpots' => max(0, $remainingSpots - 1),
+            Log::info("Email queued for event registration", [
+                'event_id' => $event->id,
+                'event_title' => $event->title,
+                'recipient_email' => $event->creator->email,
+                'registered_user' => $user->email,
             ]);
+
+            return response()->json(['success' => true, 'message' => 'User registered successfully']);
         } catch (\Exception $e) {
-            Log::error('Error in EventController.register: ' . $e->getMessage());
+            Log::error("Error in EventController.register: " . $e->getMessage(), [
+                'event_id' => $eventId ?? 'unknown',
+                'user_id' => auth()->id(),
+            ]);
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
         }
     }

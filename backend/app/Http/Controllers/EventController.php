@@ -28,6 +28,50 @@ class EventController extends CrudController
     {
         try {
             $params = $this->getDatatableParams($request);
+            $query = $this->getReadAllQuery();
+
+            if ($request->input('per_page', 50) === 'all') {
+                $items = $query->get();
+            } else {
+                $items = $query->paginate($request->input('per_page', 50));
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'items' => $items->map(function ($event) {
+                        return [
+                            'id' => $event->id,
+                            'title' => $event->title,
+                            'date' => $event->date,
+                            'location' => $event->location,
+                            'maxParticipants' => $event->max_participants,
+                            'participants' => $event->allParticipants()->map(function ($user) {
+                                return [
+                                    'id' => $user->id,
+                                    'name' => $user->name,
+                                    'email' => $user->email,
+                                    'avatar' => $user->avatarUrl, // Include avatar URL
+                                ];
+                            }),
+                        ];
+                    }),
+                    'meta' => [
+                        'currentPage' => $items->currentPage(),
+                        'lastPage' => $items->lastPage(),
+                        'totalItems' => $items->total(),
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in EventController.readAll: ' . $e->getMessage());
+            return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
+        }
+    }
+    public function readUserEvents(Request $request)
+    {
+        try {
+            $params = $this->getDatatableParams($request);
             $query = $this->getReadAllQuery()->with(['participants', 'creator'])->dataTable($params);
 
             if ($request->input('per_page', 50) === 'all') {

@@ -79,6 +79,7 @@ Route::middleware('auth:api')->group(
         Route::prefix('events')->name('events.')->group(function () {
             Route::controller(EventController::class)->group(function () {
                 Route::get('/', 'readAll'); // Get all events
+                Route::get('/my-events', 'readUserEvents'); // Get all events
                 Route::post('/', 'createOne'); // Create a new event
                 Route::get('/{event}', 'readOne'); // Get a specific event
                 Route::put('/{event}', 'updateOne'); // Update an event

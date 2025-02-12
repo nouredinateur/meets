@@ -173,8 +173,8 @@ class EventController extends CrudController
             }
 
             $event->participants()->attach($user->id);
-            
-            Mail::to($event->creator->email)->send(new EventRegistrationNotification($event, $user));
+
+            Mail::to($event->creator->email)->queue(new EventRegistrationNotification($event, $user));
 
             return response()->json([
                 'success' => true,

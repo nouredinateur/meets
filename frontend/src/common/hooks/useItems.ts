@@ -9,6 +9,7 @@ export interface PaginationMeta {
   totalItems: number;
 }
 export interface FilterParam {
+  field: string;
   filterColumn: string;
   filterOperator: string;
   filterValue?: Any;
@@ -56,6 +57,9 @@ export interface UseItemsHook<Item, CreateOneInput, UpdateOneInput> {
   deleteOne: (id: Id, options?: FetchApiOptions) => Promise<ItemResponse<Item>>;
   register: (id: Id, options?: FetchApiOptions) => Promise<ApiResponse<null>>;
   mutate: () => void;
+  isLoading: boolean;
+  error: Error | null;
+  isValidating: boolean;
 }
 
 export interface UseItemsOptions {
@@ -79,7 +83,7 @@ const useItems = <Item, CreateOneInput, UpdateOneInput>(
   const [shouldRefetch, setShouldRefetch] = useState(opts.fetchItems);
   const [savedReadAllParams, setSavedReadAllParams] = useState<SavedReadAllParams | null>();
 
-  const { data, mutate } = useSWRImmutable<Item[] | null>(
+  const { data, mutate, isLoading, error, isValidating } = useSWRImmutable<Item[] | null>(
     shouldRefetch ? apiRoutes.ReadAll : null,
     async (_url: string) => {
       if (!shouldRefetch) {
@@ -254,6 +258,9 @@ const useItems = <Item, CreateOneInput, UpdateOneInput>(
     deleteOne,
     register,
     mutate: mutateAndRefetch,
+    isLoading,
+    error,
+    isValidating,
   };
 };
 

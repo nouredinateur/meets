@@ -176,15 +176,16 @@ class EventController extends CrudController
             $event->participants()->attach($user->id);
             Log::info("User registered for event", ['user_id' => $user->id, 'event_id' => $event->id]);
 
-            // Queue the email
-            Mail::to($event->creator->email)->queue(new EventRegistrationNotification($event, $user));
-            Log::info("Email queued for event registration", [
-                'event_id' => $event->id,
-                'event_title' => $event->title,
-                'recipient_email' => $event->creator->email,
-                'registered_user' => $user->email,
-            ]);
-            $event->creator->notify(new EventRegisteredNotification($event, $user));
+            if ($event->creator->email !== $user->email) {
+                Mail::to($event->creator->email)->queue(new EventRegistrationNotification($event, $user));
+                Log::info("Email queued for event registration", [
+                    'event_id' => $event->id,
+                    'event_title' => $event->title,
+                    'recipient_email' => $event->creator->email,
+                    'registered_user' => $user->email,
+                ]);
+                $event->creator->notify(new EventRegisteredNotification($event, $user));
+            }
 
             return response()->json(['success' => true, 'message' => 'User registered successfully']);
         } catch (\Exception $e) {

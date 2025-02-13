@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
+use App\Services\UserService;
 
 class AuthController extends Controller
 {
@@ -59,7 +60,19 @@ class AuthController extends Controller
 
             return response()->json(['success' => true, 'message' => __('auth.login_success'), 'data' => ['token' => $token]]);
         } catch (\Exception $e) {
-            Log::error('Error caught in function AuthController.login: '.$e->getMessage());
+            Log::error('Error caught in function AuthController.login: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
+            return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
+        }
+    }
+    public function afterCreateOne($item, $request)
+    {
+        try {
+            $roleEnum = ROLE::from($request->role);
+            $item->syncRoles([$roleEnum]);
+        } catch (\Exception $e) {
+            Log::error('Error caught in function UserController.afterCreateOne : ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
@@ -68,31 +81,39 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-
         try {
-            return DB::transaction(
-                function () use ($request) {
-                    $user = User::where('email', $request->email)->first();
-                    if ($user) {
-                        return response()->json(['success' => false, 'errors' => [__('auth.email_already_exists')]]);
-                    }
-                    $user = User::create(
-                        [
-                            'email' => $request->email,
-                            'password' => Hash::make($request->password),
-                        ]
-                    );
-                    $user->assignRole(ROLE::USER);
-                    $token = $user->createToken('authToken', ['expires_in' => 60 * 24 * 30])->plainTextToken;
-
-                    return response()->json(['success' => true, 'data' => ['token' => $token], 'message' => __('auth.register_success')]);
+            return DB::transaction(function () use ($request) {
+                if (User::where('email', $request->email)->exists()) {
+                    return response()->json([
+                        'success' => false,
+                        'errors' => [__('auth.email_already_exists')]
+                    ]);
                 }
-            );
-        } catch (\Exception $e) {
-            Log::error('Error caught in function AuthController.register: '.$e->getMessage());
-            Log::error($e->getTraceAsString());
 
-            return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
+                $userService = new UserService();
+                $user = $userService->createUser(
+                    [
+                        'email' => $request->email,
+                        'password' => Hash::make($request->password),
+                    ],
+                    ROLE::USER
+                );
+
+                // Generate token
+                $token = $user->createToken('authToken', ['expires_in' => 60 * 24 * 30])->plainTextToken;
+
+                return response()->json([
+                    'success' => true,
+                    'data' => ['token' => $token],
+                    'message' => __('auth.register_success')
+                ]);
+            });
+        } catch (\Exception $e) {
+            Log::error('Error in AuthController.register: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'errors' => [__('common.unexpected_error')]
+            ]);
         }
     }
 
@@ -104,7 +125,7 @@ class AuthController extends Controller
 
             return response()->json(['success' => true, 'message' => __('auth.logout_success')]);
         } catch (\Exception $e) {
-            Log::error('Error caught in function AuthController.logout: '.$e->getMessage());
+            Log::error('Error caught in function AuthController.logout: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
@@ -128,7 +149,7 @@ class AuthController extends Controller
 
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
         } catch (\Exception $e) {
-            Log::error('Error caught in function AuthController.requestPasswordReset: '.$e->getMessage());
+            Log::error('Error caught in function AuthController.requestPasswordReset: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
@@ -161,7 +182,7 @@ class AuthController extends Controller
                 }
             );
         } catch (\Exception $e) {
-            Log::error('Error caught in function AuthController.resetPassword: '.$e->getMessage());
+            Log::error('Error caught in function AuthController.resetPassword: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);

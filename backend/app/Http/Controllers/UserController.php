@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Log;
+use App\Services\UserService;
 
 class UserController extends CrudController
 {
@@ -41,13 +42,15 @@ class UserController extends CrudController
     public function afterCreateOne($item, $request)
     {
         try {
-            $roleEnum = ROLE::from($request->role);
-            $item->syncRoles([$roleEnum]);
-        } catch (\Exception $e) {
-            Log::error('Error caught in function UserController.afterCreateOne : '.$e->getMessage());
-            Log::error($e->getTraceAsString());
+            $userService = new UserService();
 
-            return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
+            $role = ROLE::from($request->role);
+            $userService->assignRole($item, $role);
+
+            $userService->generateAvatar($item);
+        } catch (\Exception $e) {
+            Log::error('Error in UserController.afterCreateOne: ' . $e->getMessage());
+            throw $e;
         }
     }
 
@@ -62,7 +65,7 @@ class UserController extends CrudController
 
             return parent::updateOne($id, $request);
         } catch (\Exception $e) {
-            Log::error('Error caught in function UserController.updateOne : '.$e->getMessage());
+            Log::error('Error caught in function UserController.updateOne : ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
@@ -75,10 +78,43 @@ class UserController extends CrudController
             $roleEnum = ROLE::from($request->role);
             $item->syncRoles([$roleEnum]);
         } catch (\Exception $e) {
-            Log::error('Error caught in function UserController.afterUpdateOne : '.$e->getMessage());
+            Log::error('Error caught in function UserController.afterUpdateOne : ' . $e->getMessage());
             Log::error($e->getTraceAsString());
 
             return response()->json(['success' => false, 'errors' => [__('common.unexpected_error')]]);
         }
+    }
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $user = auth()->user();
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $path;
+            $user->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'avatar' => $user->avatarUrl,
+        ]);
+    }
+
+    public function regenerateAvatar($id)
+    {
+        $user = User::findOrFail($id);
+        $seed = $user->id;
+        $user->avatar = "https://api.dicebear.com/9.x/micah/svg?" . http_build_query([
+            'seed' => $seed,
+            'accessories' => 'random',
+            'hair' => 'random',
+        ]);
+        $user->save();
+        return response()->json(['avatar' => $user->avatar]);
     }
 }

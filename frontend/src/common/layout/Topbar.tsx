@@ -14,18 +14,19 @@ import {
   ListItemText,
   Toolbar,
   styled,
+  Badge,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import useAuth from '@modules/auth/hooks/api/useAuth';
 import Stack from '@mui/material/Stack';
 import Logo from '@common/assets/svgs/Logo';
 import { ArrowForwardIos, Logout } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
-import Image from 'next/image';
 import { setUserLanguage } from '@common/components/lib/utils/language';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 interface TopbarItem {
   label: string;
@@ -46,11 +47,13 @@ const Topbar = () => {
   const [showDrawer, setShowDrawer] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const { user, logout } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0); // Add state for unread notifications
 
   const dropdownWidth = 137;
   const toggleSidebar = () => {
     setShowDrawer((oldValue) => !oldValue);
   };
+
   const navItems: TopbarItem[] = [
     {
       label: t('topbar:home'),
@@ -58,39 +61,34 @@ const Topbar = () => {
       onClick: () => router.push(Routes.Common.Home),
     },
     {
-      label: t('topbar:language'),
-      dropdown: [
-        {
-          label: t('topbar:language_french'),
-          link: asPath,
-          value: 'fr',
-        },
-        {
-          label: t('topbar:language_english'),
-          link: `${asPath}`,
-          value: 'en',
-        },
-        {
-          label: t('topbar:language_spanish'),
-          link: `${asPath}`,
-          value: 'es',
-        },
-      ],
+      label: t('topbar:events'),
+      link: Routes.Events.ReadAll,
+      onClick: () => router.push(Routes.Events.ReadAll),
     },
-    {
-      label: 'Utilisateur',
-      dropdown: [
-        {
-          label: 'Mon Profil',
-          link: Routes.Users.Me,
-          onClick: () => router.push(Routes.Users.Me),
-        },
-        {
-          label: 'Déconnexion',
-          onClick: () => logout(),
-        },
-      ],
-    },
+    ...(user
+      ? [
+          {
+            label: 'Utilisateur',
+            dropdown: [
+              {
+                label: 'Mon Profil',
+                link: Routes.Users.Me,
+                onClick: () => router.push(Routes.Users.Me),
+              },
+              { label: 'Déconnexion', onClick: () => logout() },
+            ],
+          },
+        ]
+      : [
+          {
+            label: t('topbar:language'), // Only include this if user is not logged in
+            dropdown: [
+              { label: t('topbar:language_french'), link: asPath, value: 'fr' },
+              { label: t('topbar:language_english'), link: asPath, value: 'en' },
+              { label: t('topbar:language_spanish'), link: asPath, value: 'es' },
+            ],
+          },
+        ]),
   ];
 
   const toggleDropdown = () => {
@@ -133,6 +131,11 @@ const Topbar = () => {
     }
   };
 
+  const handleNotificationClick = () => {
+    // Handle notification click here
+    console.log('Notification clicked');
+  };
+
   return (
     <AppBar
       position="static"
@@ -144,20 +147,12 @@ const Topbar = () => {
       <Container>
         <Toolbar sx={{ px: { xs: 0, sm: 0 } }}>
           <Stack flexDirection="row" alignItems="center" flexGrow={1}>
-            <Box
-              component="div"
+            <Logo
+              id="topbar-logo"
               onClick={() => router.push(Routes.Common.Home)}
-              sx={{
-                width: 80,
-                height: 80,
-                display: 'inline-flex',
-                cursor: 'pointer',
-              }}
-            >
-              <Image src="/meets.png" alt="Logo" width={80} height={80} />
-            </Box>
+              sx={{ cursor: 'pointer' }}
+            />
           </Stack>
-
           <List sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
             <>
               {navItems.map((item, index) => {
@@ -523,6 +518,23 @@ const Topbar = () => {
               </ListItem>
             );
           })}
+          {user  && (
+            <ListItem key="notifications" disablePadding>
+              <ListItemButton
+                onClick={handleNotificationClick}
+                sx={{
+                  width: '100%',
+                }}
+              >
+                <ListItemIcon>
+                  <Badge badgeContent={unreadCount} color="error">
+                    <NotificationsIcon />
+                  </Badge>
+                </ListItemIcon>
+                <ListItemText primary="Notifications" />
+              </ListItemButton>
+            </ListItem>
+          )}
           <ListItem key="profile" disablePadding>
             <ListItemButton
               onClick={() => router.push(Routes.Users.Me)}

@@ -1,7 +1,6 @@
 'use client';
-import { Container, Typography, Button, TextField, Box, Rating } from '@mui/material';
+import { Container, Typography, Box, Rating } from '@mui/material';
 import { styled } from '@mui/system';
-import Image from 'next/image';
 
 const HeroSection = styled('div')({
   padding: '80px 0',
@@ -36,17 +35,6 @@ const StatBox = styled(Box)({
   '& .MuiTypography-body1': {
     color: '#666',
   },
-});
-
-const EmailInput = styled(TextField)({
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '30px',
-    backgroundColor: '#fff',
-    '& fieldset': {
-      borderColor: '#e0e0e0',
-    },
-  },
-  width: '300px',
 });
 
 export default function LandingPage() {

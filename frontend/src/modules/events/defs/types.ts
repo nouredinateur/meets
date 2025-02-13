@@ -1,13 +1,5 @@
 import { CrudObject, Id } from '@common/defs/types';
 
-export interface Event extends CrudObject {
-  title: string;
-  date: string;
-  location: string;
-  max_participants: number;
-  userId: Id;
-}
-
 export interface EventStatusOptions {
   open: string;
   full: string;
@@ -19,12 +11,43 @@ export enum EventStatus {
   CANCELLED = 'CANCELLED',
 }
 
-export interface Event {
+export interface Event extends CrudObject {
   id: number;
   title: string;
   description: string;
   startDate: string | Date;
   endDate: string | Date;
-  status: EventStatus;
   location: string;
+}
+
+export interface CreateEventInput {
+  title: string;
+  date: string;
+  location: string;
+  maxParticipants: number;
+  description: string;
+  userId: number;
+}
+
+export interface CreateOneInput {
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  userId: Id;
+}
+
+export interface UpdateOneInput {
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  userId: Id;
+}
+
+export interface PaginationMeta {
+  currentPage: number;
+  itemsPerPage: number;
+  totalItems: number;
+  lastPage: number;
 }

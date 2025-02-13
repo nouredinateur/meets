@@ -14,13 +14,16 @@
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.7",
+        "mailjet/laravel-mailjet": "^3.1",
         "plesk/ext-laravel-integration": "*",
+        "pusher/pusher-php-server": "^7.2",
         "staudenmeir/eloquent-has-many-deep": "^1.7"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.13",
         "barryvdh/laravel-ide-helper": "^3.1",
         "fakerphp/faker": "^1.9.1",
+        "friendsofphp/php-cs-fixer": "^3.66",
         "laravel/dusk": "^8.0",
         "laravel/pint": "^1.18",
         "laravel/sail": "^1.0.1",

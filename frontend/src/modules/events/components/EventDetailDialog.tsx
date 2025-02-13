@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogActions,
   Stack,
-  TextField,
   Alert,
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -20,15 +19,14 @@ import { formatDate, formatTime } from '../defs/utils';
 import { Event } from '../defs/types';
 import useEvents from '@modules/events/hooks/api/useEvents';
 
-const EventDetailDialog = ({
-  event,
-  open,
-  onClose,
-}: {
+interface EventDetailDialogProps {
   event: Event;
   open: boolean;
   onClose: () => void;
-}) => {
+  onEventUpdate: (updatedEvent: Event) => void;
+}
+
+const EventDetailDialog = ({ event, open, onClose, onEventUpdate }: EventDetailDialogProps) => {
   const { register: registerForEvent } = useEvents();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -45,12 +43,18 @@ const EventDetailDialog = ({
     try {
       const response = await registerForEvent(event.id);
       if (response.success) {
-        onClose();
+        const updatedEvent = {
+          ...event,
+          remainingSpots: event.remainingSpots - 1,
+        };
+        onEventUpdate(updatedEvent);
         reset();
+        onClose();
       } else {
         setApiError(response.message || 'Registration failed. Please try again.');
       }
     } catch (error) {
+      console.error(error);
       setApiError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -90,7 +94,7 @@ const EventDetailDialog = ({
           variant="contained"
           color="primary"
           onClick={handleSubmit(onSubmit)}
-          disabled={loading}
+          disabled={loading || event.remainingSpots <= 0}
         >
           {loading ? 'Registering...' : 'Register'}
         </Button>

@@ -16,6 +16,7 @@ import {
   Pagination,
   styled,
   Card,
+  Skeleton,
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ScheduleIcon from '@mui/icons-material/Schedule';
@@ -24,23 +25,21 @@ import EventDetailDialog from './EventDetailDialog';
 import AddEventForm from './AddEventForm';
 import { formatDate, formatTime } from '../defs/utils';
 import { Event } from '../defs/types';
+import EventCard from './EventCard';
 
 const EventsPage: NextPage = () => {
   const { t } = useTranslation(['user']);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [sortModel, setSortModel] = useState([{ field: 'createdAt', sort: 'desc' }]);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(6);
 
+  // Fetch events with pagination
+  const { items, readAll, paginationMeta, isLoading } = useEvents();
+
   useEffect(() => {
-    let filterParam: FilterParam | undefined;
-    let sortParam: SortParam | undefined;
-
-    readAll(page, pageSize, sortParam, filterParam ? [filterParam] : []);
+    readAll(page, pageSize);
   }, [page, pageSize]);
-
-  const { items, readAll, register, paginationMeta } = useEvents();
 
   const StyledCard = styled(Card)<{ $disabled: boolean }>(({ theme, $disabled }) => ({
     height: '100%',
@@ -56,12 +55,13 @@ const EventsPage: NextPage = () => {
           '&:hover': { transform: 'translateY(-4px)' },
         }),
   }));
-
-  console.log(items);
+  const handleSelectEvent = (event: Event) => {
+    setSelectedEvent(event);
+  };
   return (
     <Box sx={{ p: 3 }}>
-      <Button variant="outlined" onClick={() => setShowAddForm(true)} sx={{ mb: 2 }}>
-        Add New Event
+      <Button variant="outlined" onClick={() => setShowAddForm(true)} sx={{ mb: 4 }}>
+        Post an Event
       </Button>
       <Dialog open={showAddForm} onClose={() => setShowAddForm(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Create New Event</DialogTitle>
@@ -74,6 +74,9 @@ const EventsPage: NextPage = () => {
           event={selectedEvent}
           open={!!selectedEvent}
           onClose={() => setSelectedEvent(null)}
+          onEventUpdate={(updatedEvent) => {
+            readAll(page, pageSize);
+          }}
         />
       )}
       <Box
@@ -84,56 +87,37 @@ const EventsPage: NextPage = () => {
           mb: 4,
         }}
       >
-        {items?.map((event) => (
-          <StyledCard key={event.id} $disabled={event.remainingSpots <= 0}>
-            <CardActionArea
-              sx={{ height: '100%', p: 2 }}
-              onClick={() => setSelectedEvent(event)}
-              disabled={event.remainingSpots <= 0}
-            >
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {event.title}
-                </Typography>
-                <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CalendarMonthIcon fontSize="small" color="action" />
-                  <Typography variant="body2" color="text.secondary">
-                    {formatDate(event.date)}
-                  </Typography>
-                </Box>
-                <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ScheduleIcon fontSize="small" color="action" />
-                  <Typography variant="body2" color="text.secondary">
-                    {formatTime(event.date)}
-                  </Typography>
-                </Box>
-                <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocationOnIcon fontSize="small" color="action" />
-                  <Typography variant="body2" color="text.secondary">
-                    {event.location}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto' }}>
-                  <Chip label={`${event.remainingSpots} spots`} size="small" color="info" />
-                </Box>
-              </CardContent>
-            </CardActionArea>
-          </StyledCard>
-        ))}
+        {isLoading ? (
+          <Skeleton variant="rounded" width={600} height={1000} />
+        ) : (
+          items?.map((event) => (
+            <EventCard
+              event={{
+                id: event.id,
+                title: event.title,
+                date: event.date,
+                location: event.location,
+                remainingSpots: event.remainingSpots,
+              }}
+              setSelectedEvent={handleSelectEvent}
+            />
+          ))
+        )}
       </Box>
+
+      {/* Pagination */}
       {paginationMeta && paginationMeta.lastPage > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Pagination
-            count={paginationMeta.lastPage} // Total pages
-            page={page} // Controlled page state
-            onChange={(_, newPage) => setPage(newPage)} // Correctly updates `page`
+            count={paginationMeta.lastPage}
+            page={page}
+            onChange={(_, newPage) => setPage(newPage)}
             color="primary"
-            variant="outlined"
-            shape="rounded"
           />
         </Box>
-      )}{' '}
+      )}
     </Box>
   );
 };
+
 export default EventsPage;

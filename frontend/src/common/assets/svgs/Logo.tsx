@@ -5,14 +5,12 @@ import { Box, BoxProps } from '@mui/material';
 import Image from 'next/image';
 
 interface LogoProps extends BoxProps {
-  id: string;
   disabledLink?: boolean;
 }
 
 const Logo = forwardRef<HTMLDivElement, LogoProps>(
-  ({ id, disabledLink = false, sx, ...other }, ref) => {
+  ({ disabledLink = false, sx, ...other }, ref) => {
     const theme = useTheme();
-    const PRIMARY_MAIN = theme.palette.primary.main;
 
     const logo = (
       <Box

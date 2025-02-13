@@ -17,7 +17,4 @@ export const getStaticProps = async ({ locale }: { locale: string }) => ({
   },
 });
 
-export default withAuth(LandingPage, {
-  mode: AUTH_MODE.LOGGED_IN,
-  redirectUrl: Routes.Auth.Login,
-});
+export default LandingPage;

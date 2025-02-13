@@ -81,23 +81,6 @@ export default function LandingPage() {
                 community-driven platform.
               </Typography>
 
-              <Box sx={{ display: 'flex', gap: 2, marginBottom: '48px' }}>
-                <EmailInput placeholder="Enter your email" variant="outlined" size="small" />
-                <Button
-                  variant="contained"
-                  sx={{
-                    borderRadius: '30px',
-                    padding: '8px 24px',
-                    backgroundColor: '#000',
-                    '&:hover': {
-                      backgroundColor: '#333',
-                    },
-                  }}
-                >
-                  Sign Up Now
-                </Button>
-              </Box>
-
               <StatsContainer>
                 <StatBox>
                   <Typography variant="h3">50k+</Typography>

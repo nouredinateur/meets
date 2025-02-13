@@ -7,7 +7,6 @@ import CustomBreadcrumbs from '@common/components/lib/navigation/CustomBreadCrum
 import { CRUD_ACTION } from '@common/defs/types';
 import Namespaces from '@common/defs/namespaces';
 import Labels from '@common/defs/labels';
-import CreateEventStepper from '@modules/events/components/partials/CreateEventStepper';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'react-i18next';
 
@@ -24,7 +23,6 @@ const EventsPage: NextPage = () => {
           { name: t(`event:${Labels.Events.NewOne}`) },
         ]}
       />
-      <CreateEventStepper />
       {/* <CreateEventForm /> */}
     </>
   );

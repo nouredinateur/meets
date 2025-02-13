@@ -1,4 +1,5 @@
 'use client';
+
 import { Container, Typography, Box, Rating } from '@mui/material';
 import { styled } from '@mui/system';
 
@@ -37,7 +38,7 @@ const StatBox = styled(Box)({
   },
 });
 
-export default function LandingPage() {
+const LandingPage = () => {
   return (
     <>
       <HeroSection>
@@ -105,4 +106,5 @@ export default function LandingPage() {
       </HeroSection>
     </>
   );
-}
+};
+export default LandingPage;

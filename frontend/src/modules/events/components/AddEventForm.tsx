@@ -6,7 +6,6 @@ import { CreateEventInput, Event, EventStatus } from '../defs/types';
 import useAuth from '@modules/auth/hooks/api/useAuth';
 import useEvents from '../hooks/api/useEvents';
 import { Grid } from '@mui/material';
-import { useRouter } from 'next/router';
 import { UseFormReturn } from 'react-hook-form';
 import * as Yup from 'yup';
 

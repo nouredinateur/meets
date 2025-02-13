@@ -8,13 +8,20 @@ const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
   forceTLS: true,
 });
 
+interface EventRegisteredTypes {
+  message: string;
+  event_id: number;
+  id: string;
+  type: string;
+}
+
 const EventNotifications = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     const channel = pusher.subscribe('meets');
 
-    channel.bind('EventRegistered', (data: any) => {
+    channel.bind('EventRegistered', (data: EventRegisteredTypes) => {
       console.log('New registration for event', data);
       enqueueSnackbar(`${data?.message}!`, {
         variant: 'success',

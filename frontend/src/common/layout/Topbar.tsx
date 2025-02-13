@@ -14,7 +14,6 @@ import {
   ListItemText,
   Toolbar,
   styled,
-  Badge,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useRouter } from 'next/router';
@@ -26,7 +25,6 @@ import { ArrowForwardIos, Logout } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { setUserLanguage } from '@common/components/lib/utils/language';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 
 interface TopbarItem {
   label: string;
@@ -47,7 +45,6 @@ const Topbar = () => {
   const [showDrawer, setShowDrawer] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const { user, logout } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0); // Add state for unread notifications
 
   const dropdownWidth = 137;
   const toggleSidebar = () => {
@@ -129,11 +126,6 @@ const Topbar = () => {
         query: { url: encodeURIComponent(router.pathname) },
       });
     }
-  };
-
-  const handleNotificationClick = () => {
-    // Handle notification click here
-    console.log('Notification clicked');
   };
 
   return (
@@ -518,23 +510,7 @@ const Topbar = () => {
               </ListItem>
             );
           })}
-          {user  && (
-            <ListItem key="notifications" disablePadding>
-              <ListItemButton
-                onClick={handleNotificationClick}
-                sx={{
-                  width: '100%',
-                }}
-              >
-                <ListItemIcon>
-                  <Badge badgeContent={unreadCount} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </ListItemIcon>
-                <ListItemText primary="Notifications" />
-              </ListItemButton>
-            </ListItem>
-          )}
+
           <ListItem key="profile" disablePadding>
             <ListItemButton
               onClick={() => router.push(Routes.Users.Me)}

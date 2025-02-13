@@ -1,6 +1,5 @@
 import { forwardRef } from 'react';
 // @mui
-import { useTheme } from '@mui/material/styles';
 import { Box, BoxProps } from '@mui/material';
 import Image from 'next/image';
 
@@ -10,8 +9,6 @@ interface LogoProps extends BoxProps {
 
 const Logo = forwardRef<HTMLDivElement, LogoProps>(
   ({ disabledLink = false, sx, ...other }, ref) => {
-    const theme = useTheme();
-
     const logo = (
       <Box
         ref={ref}

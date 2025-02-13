@@ -16,14 +16,14 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { formatDate, formatTime } from '../defs/utils';
-import { Event } from '../defs/types';
+import { IEvent } from '../defs/types';
 import useEvents from '@modules/events/hooks/api/useEvents';
 
 interface EventDetailDialogProps {
-  event: Event;
+  event: IEvent;
   open: boolean;
   onClose: () => void;
-  onEventUpdate: (updatedEvent: Event) => void;
+  onEventUpdate: (updatedEvent: IEvent) => void;
 }
 
 const EventDetailDialog = ({ event, open, onClose, onEventUpdate }: EventDetailDialogProps) => {
@@ -31,11 +31,7 @@ const EventDetailDialog = ({ event, open, onClose, onEventUpdate }: EventDetailD
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const {
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm();
+  const { handleSubmit, reset } = useForm();
 
   const onSubmit = async () => {
     setLoading(true);

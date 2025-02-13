@@ -5,8 +5,7 @@ import {
   Schedule as TimeIcon,
   LocationOn as LocationIcon,
 } from '@mui/icons-material';
-import exp from 'constants';
-
+import { IEvent } from '../defs/types';
 // Styled components
 const StyledCard = styled(Card, {
   shouldForwardProp: (prop) => prop !== '$disabled',
@@ -90,14 +89,8 @@ const StatusChip = styled(Chip, {
 }));
 
 interface EventCardProps {
-  event: {
-    id: number;
-    title: string;
-    date: string;
-    location: string;
-    remainingSpots: number;
-  };
-  setSelectedEvent: (event: any) => void;
+  event: IEvent;
+  setSelectedEvent: (event: IEvent) => void;
 }
 const EventCard = ({ event, setSelectedEvent }: EventCardProps) => {
   const isSoldOut = event.remainingSpots <= 0;

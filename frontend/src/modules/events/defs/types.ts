@@ -15,8 +15,7 @@ export interface Event extends CrudObject {
   id: number;
   title: string;
   description: string;
-  startDate: string | Date;
-  endDate: string | Date;
+  date: string;
   location: string;
 }
 
@@ -50,4 +49,13 @@ export interface PaginationMeta {
   itemsPerPage: number;
   totalItems: number;
   lastPage: number;
+}
+
+export interface IEvent {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  remainingSpots: number;
 }

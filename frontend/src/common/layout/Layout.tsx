@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Footer from './Footer';
-import Leftbar, { LEFTBAR_WIDTH } from './Leftbar';
 import Topbar from './Topbar';
 import Box from '@mui/material/Box';
 import { Container, useTheme, Button, Typography } from '@mui/material';
@@ -16,7 +15,6 @@ interface ILayoutProps {
 const Layout = (props: ILayoutProps) => {
   const { children } = props;
   const theme = useTheme();
-  const [openLeftbar, setOpenLeftbar] = useState(true);
   const [display, setDisplay] = useState(true);
   const underMaintenance = process.env.NEXT_PUBLIC_UNDER_MAINTENANCE === 'true';
   const { t } = useTranslation('common');

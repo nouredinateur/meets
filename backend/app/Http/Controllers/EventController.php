@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\CrudController;
 use App\Mail\EventRegistrationNotification;
 use Illuminate\Support\Facades\Mail;
+use App\Notifications\EventRegisteredNotification;
 
 class EventController extends CrudController
 {
@@ -183,6 +184,7 @@ class EventController extends CrudController
                 'recipient_email' => $event->creator->email,
                 'registered_user' => $user->email,
             ]);
+            $event->creator->notify(new EventRegisteredNotification($event, $user));
 
             return response()->json(['success' => true, 'message' => 'User registered successfully']);
         } catch (\Exception $e) {

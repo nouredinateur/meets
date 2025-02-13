@@ -65,6 +65,7 @@ const EventsPage: NextPage = () => {
         ) : (
           items?.map((event) => (
             <EventCard
+              key={event.id}
               event={{
                 id: event.id,
                 title: event.title,

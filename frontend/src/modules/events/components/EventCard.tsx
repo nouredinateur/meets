@@ -1,78 +1,191 @@
-import React from 'react';
-import { Card, CardActionArea, CardContent, Typography, Box, Chip, styled } from '@mui/material';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import ScheduleIcon from '@mui/icons-material/Schedule';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { Event } from '../defs/types';
+import { styled } from '@mui/material/styles';
+import { Card, CardActionArea, CardContent, Typography, Box, Chip, alpha } from '@mui/material';
+import {
+  CalendarMonth as CalendarIcon,
+  Schedule as TimeIcon,
+  LocationOn as LocationIcon,
+} from '@mui/icons-material';
+import exp from 'constants';
 
-interface EventCardProps {
-  event: Event;
-  setSelectedEvent: (event: Event) => void;
-  formatDate: (date: Date) => string;
-  formatTime: (date: Date) => string;
-}
-
-interface StyledCardProps {
-  disabled?: boolean;
-}
-
-const StyledCard = styled(Card)<StyledCardProps>(({ theme, disabled }) => ({
+// Styled components
+const StyledCard = styled(Card, {
+  shouldForwardProp: (prop) => prop !== '$disabled',
+})<{ $disabled: boolean }>(({ theme, $disabled }) => ({
   height: '100%',
-  transition: 'transform 0.2s',
-  ...(disabled
+  position: 'relative',
+  transition: theme.transitions.create(['transform', 'box-shadow'], {
+    duration: theme.transitions.duration.standard,
+  }),
+  ...($disabled
     ? {
         backgroundColor: theme.palette.action.disabledBackground,
-        opacity: 0.6,
-        cursor: 'not-allowed',
-        pointerEvents: 'none',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: alpha(theme.palette.background.paper, 0.12),
+          zIndex: 1,
+        },
       }
     : {
-        '&:hover': { transform: 'translateY(-4px)' },
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: theme.shadows[8],
+        },
       }),
 }));
 
-const EventCard: React.FC<EventCardProps> = ({
-  event,
-  setSelectedEvent,
-  formatDate,
-  formatTime,
-}) => {
-  const isFull = event.remainingSpots <= 0;
+const StyledActionArea = styled(CardActionArea)(({ theme }) => ({
+  height: '100%',
+  padding: theme.spacing(2),
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'stretch',
+  '&.Mui-disabled': {
+    pointerEvents: 'none',
+  },
+}));
+
+const InfoRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  marginBottom: theme.spacing(1.5),
+  color: theme.palette.text.secondary,
+  '& svg': {
+    fontSize: '1.25rem',
+    color: theme.palette.action.active,
+  },
+}));
+
+const EventTitle = styled(Typography)(({ theme }) => ({
+  marginBottom: theme.spacing(3),
+  minHeight: '56px',
+  display: '-webkit-box',
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
+  lineHeight: 1.3,
+  fontWeight: 600,
+}));
+
+const StatusChip = styled(Chip, {
+  shouldForwardProp: (prop) => prop !== '$soldOut',
+})<{ $soldOut: boolean }>(({ theme, $soldOut }) => ({
+  transition: theme.transitions.create(['background-color', 'color'], {
+    duration: theme.transitions.duration.short,
+  }),
+  ...($soldOut
+    ? {
+        backgroundColor: theme.palette.error.light,
+        color: theme.palette.error.contrastText,
+      }
+    : {
+        backgroundColor: theme.palette.success.light,
+        color: theme.palette.success.contrastText,
+      }),
+}));
+
+interface EventCardProps {
+  event: {
+    id: number;
+    title: string;
+    date: string;
+    location: string;
+    remainingSpots: number;
+  };
+  setSelectedEvent: (event: any) => void;
+}
+const EventCard = ({ event, setSelectedEvent }: EventCardProps) => {
+  const isSoldOut = event.remainingSpots <= 0;
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const formatTime = (date: string) => {
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
 
   return (
-    <StyledCard key={event.id} disabled={isFull}>
-      <CardActionArea
-        sx={{ height: '100%', p: 2 }}
+    <StyledCard $disabled={isSoldOut}>
+      <StyledActionArea
         onClick={() => setSelectedEvent(event)}
-        disabled={isFull}
+        disabled={isSoldOut}
+        aria-disabled={isSoldOut}
       >
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            {event.title}
-          </Typography>
-          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <CalendarMonthIcon fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
-              {formatDate(event.date)}
-            </Typography>
+        <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <EventTitle variant="h6">{event.title}</EventTitle>
+
+          <Box sx={{ flex: 1 }}>
+            <InfoRow>
+              <CalendarIcon />
+              <Typography variant="body2">{formatDate(event.date)}</Typography>
+            </InfoRow>
+
+            <InfoRow>
+              <TimeIcon />
+              <Typography variant="body2">{formatTime(event.date)}</Typography>
+            </InfoRow>
+
+            <InfoRow sx={{ mb: 3 }}>
+              <LocationIcon />
+              <Typography
+                variant="body2"
+                sx={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {event.location}
+              </Typography>
+            </InfoRow>
           </Box>
-          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <ScheduleIcon fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
-              {formatTime(event.date)}
-            </Typography>
-          </Box>
-          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <LocationOnIcon fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
-              {event.location}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto' }}>
-            <Chip label={`${event.remainingSpots} spots`} size="small" color="info" />
+
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <StatusChip
+              $soldOut={isSoldOut}
+              label={isSoldOut ? 'Sold Out' : `${event.remainingSpots} spots left`}
+              size="small"
+            />
+
+            {!isSoldOut && (
+              <Typography
+                variant="caption"
+                sx={{
+                  opacity: 0,
+                  transition: (theme) => theme.transitions.create('opacity'),
+                  '.MuiCardActionArea-root:hover &': {
+                    opacity: 1,
+                  },
+                  color: 'primary.main',
+                  fontWeight: 500,
+                }}
+              >
+                View Details →
+              </Typography>
+            )}
           </Box>
         </CardContent>
-      </CardActionArea>
+      </StyledActionArea>
     </StyledCard>
   );
 };

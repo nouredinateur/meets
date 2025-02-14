@@ -8,6 +8,7 @@ import useEvents from '../hooks/api/useEvents';
 import { Grid } from '@mui/material';
 import { UseFormReturn } from 'react-hook-form';
 import * as Yup from 'yup';
+import dayjs from 'dayjs';
 
 interface AddEventFormProps {
   onClose: () => void;
@@ -15,11 +16,9 @@ interface AddEventFormProps {
 
 const AddEventForm = ({ onClose }: AddEventFormProps) => {
   const { user } = useAuth();
-
   const schema = Yup.object().shape({
     title: Yup.string().required('Event title is required'),
-    startDate: Yup.date().required('Event date is required'),
-    endDate: Yup.date().required('Event date is required'),
+    date: Yup.date().required('Event date is required'),
     location: Yup.string().required('Location is required'),
     maxParticipants: Yup.number()
       .required('Max participants is required')
@@ -30,13 +29,12 @@ const AddEventForm = ({ onClose }: AddEventFormProps) => {
 
   const defaultValues: CreateEventInput = {
     title: '',
-    date: new Date().toISOString(),
+    date: dayjs().format('YYYY-MM-DD HH:mm:ss'),
     location: '',
     maxParticipants: 1,
     description: '',
-    userId: user?.id || 0,
+    user_id: user?.id || 0,
   };
-
   const onPostSubmit = async (
     _data: CreateEventInput,
     response: ItemResponse<Event>,
@@ -47,6 +45,17 @@ const AddEventForm = ({ onClose }: AddEventFormProps) => {
     }
   };
 
+  const onPreSubmit = (data: any) => {
+    let { date, title, ...rest } = data;
+    date = dayjs(data.date).format('YYYY-MM-DD HH:mm:ss');
+    return {
+      data: {
+        ...data,
+        date,
+      },
+    };
+  };
+
   return (
     <>
       <CreateCrudItemForm<Event, CreateEventInput>
@@ -55,6 +64,7 @@ const AddEventForm = ({ onClose }: AddEventFormProps) => {
         schema={schema}
         defaultValues={defaultValues}
         onPostSubmit={onPostSubmit}
+        onPreSubmit={onPreSubmit}
       >
         <Grid container spacing={3} sx={{ padding: 6 }}>
           <Grid item xs={12}>
@@ -64,7 +74,8 @@ const AddEventForm = ({ onClose }: AddEventFormProps) => {
             <RHFTextField
               name="date"
               label="Date"
-              type="datetime-local"
+              type="date"
+              value={dayjs().format('YYYY-MM-DD HH:mm:ss')}
               InputLabelProps={{ shrink: true }}
             />
           </Grid>

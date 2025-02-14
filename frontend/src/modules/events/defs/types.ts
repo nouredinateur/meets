@@ -25,7 +25,7 @@ export interface CreateEventInput {
   location: string;
   maxParticipants: number;
   description: string;
-  userId: number;
+  user_id: number;
 }
 
 export interface CreateOneInput {
@@ -33,7 +33,7 @@ export interface CreateOneInput {
   description: string;
   date: string;
   location: string;
-  userId: Id;
+  user_id: Id;
 }
 
 export interface UpdateOneInput {

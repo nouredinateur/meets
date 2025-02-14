@@ -81,7 +81,7 @@ Ensure that the Laravel backend is running before making API requests. Update th
 
 Example `.env` configuration in the frontend:
 ```env
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
 ```
 
 ## Additional Commands
